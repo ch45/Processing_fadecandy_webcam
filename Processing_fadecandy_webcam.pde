@@ -13,20 +13,12 @@ int y0;
 
 void setup()
 {
-  size(720, 480, P2D); // Important to note the renderer
+  size(640, 480, P2D); // Important to note the renderer
 
-  // String[] devices = GLCapture.list(); // Get the list of cameras connected to the Pi
-
-  // Get the resolutions and framerates supported by the first camera
-  // if (0 < devices.length) {
-  //  String[] configs = GLCapture.configs(devices[0]);
-  // }
-
-  video = new GLCapture(this);  // this will use the first recognized camera by default
-  // you could be more specific also, e.g.
-  //video = new GLCapture(this, devices[0], configs[0]);
-
-  video.start();
+  String[] devices = GLCapture.list(); // Get the list of cameras connected to the Pi
+  int deviceId = getCameraDevice(devices);
+  
+  video = new GLCapture(this, devices[deviceId], 640, 480, 25);
 
   opc = new OPC(this, "127.0.0.1", 7890); // Connect to the local instance of fcserver
 
@@ -42,6 +34,8 @@ void setup()
       ledCount += ledsAcross * ledsDown;
     }
   }
+
+  video.start();
 }
 
 void draw()
@@ -53,4 +47,20 @@ void draw()
   }
 
   image(video, 0, 0, width, height);
+}
+
+// find a likely match for a connected camera
+int getCameraDevice(String[] devices)
+{
+  int deviceId = 0;
+
+  if (devices.length > 0) {
+    for (int i = 0; i < devices.length; i++) {
+      if (devices[i].contains("mmal service")) {
+        deviceId = i;
+        break;
+      }
+    }
+  }
+  return deviceId;
 }
